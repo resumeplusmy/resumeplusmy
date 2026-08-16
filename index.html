@@ -322,7 +322,7 @@
                     <p class="text-xs text-gray-500 mb-4 text-center md:text-left"><i class="fas fa-arrows-alt-h mr-1"></i> Drag to explore or use the slider below</p>
                     
                     <!-- Horizontal Scroll Gallery with Drag-to-Scroll Support -->
-                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-4 no-scrollbar cursor-grab active:cursor-grabbing select-none" style="scroll-behavior: smooth;">
+                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-4 no-scrollbar cursor-grab active:cursor-grabbing select-none">
                         <!-- Dynamic Success Stories will render here -->
                     </div>
                     
@@ -1618,26 +1618,35 @@
             const thumb = document.getElementById('custom-slider-thumb');
             if(!slider || !track || !thumb) return;
 
-            // 1. Update Thumb Width & Position based on scroll (Optimized with requestAnimationFrame)
+            // 1. Hardware-Accelerated Thumb Updater
             let ticking = false;
             function updateThumb() {
                 if (!ticking) {
                     window.requestAnimationFrame(() => {
-                        const scrollWidth = slider.scrollWidth - slider.clientWidth;
-                        if (scrollWidth <= 0) {
+                        const clientWidth = slider.clientWidth;
+                        const scrollWidth = slider.scrollWidth;
+                        const maxScroll = scrollWidth - clientWidth;
+
+                        if (maxScroll <= 0) {
                             thumb.style.width = '100%';
-                            thumb.style.left = '0%';
+                            thumb.style.transform = `translateX(0px)`;
                             ticking = false;
                             return;
                         }
-                        const ratio = slider.clientWidth / slider.scrollWidth;
-                        const thumbWidth = Math.max(ratio * 100, 10); // Min 10% width
-                        const maxLeft = 100 - thumbWidth;
-                        const scrollFraction = slider.scrollLeft / scrollWidth;
-                        const thumbLeft = scrollFraction * maxLeft;
 
+                        // Calculate width percentage
+                        const ratio = clientWidth / scrollWidth;
+                        const thumbWidth = Math.max(ratio * 100, 10);
                         thumb.style.width = `${thumbWidth}%`;
-                        thumb.style.left = `${thumbLeft}%`;
+
+                        // GPU Accelerated Transform for moving the thumb (Buttery Smooth!)
+                        const scrollFraction = slider.scrollLeft / maxScroll;
+                        const maxThumbMove = track.clientWidth - thumb.clientWidth;
+                        const thumbX = scrollFraction * maxThumbMove;
+                        
+                        thumb.style.left = '0px'; 
+                        thumb.style.transform = `translateX(${thumbX}px)`;
+                        
                         ticking = false;
                     });
                     ticking = true;
@@ -1646,76 +1655,78 @@
 
             slider.removeEventListener('scroll', updateThumb);
             slider.addEventListener('scroll', updateThumb);
+            window.addEventListener('resize', updateThumb);
             updateThumb();
 
-            // 2. Click-Hold and Drag to Scroll (MOUSE ONLY - Touch gets native momentum)
+            // 2. Optimized Mouse Dragging
             let isDown = false;
             let startX;
             let scrollLeft;
 
-            const startDrag = (e) => {
+            slider.addEventListener('mousedown', (e) => {
                 isDown = true;
-                slider.style.scrollBehavior = 'auto'; // Remove smooth scroll temporarily while dragging
                 slider.classList.add('cursor-grabbing');
                 startX = e.pageX - slider.offsetLeft;
                 scrollLeft = slider.scrollLeft;
-            };
+            });
 
-            slider.onmousedown = startDrag;
+            slider.addEventListener('mouseleave', () => {
+                isDown = false;
+                slider.classList.remove('cursor-grabbing');
+            });
 
-            slider.onmouseleave = () => { 
-                isDown = false; 
-                slider.classList.remove('cursor-grabbing'); 
-                slider.style.scrollBehavior = 'smooth';
-            };
-            slider.onmouseup = () => { 
-                isDown = false; 
-                slider.classList.remove('cursor-grabbing'); 
-                slider.style.scrollBehavior = 'smooth';
-            };
+            slider.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.classList.remove('cursor-grabbing');
+            });
 
-            const moveDrag = (e) => {
-                if(!isDown) return;
-                if(e.cancelable) e.preventDefault(); 
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault(); // Stops text-selection flickering
                 const x = e.pageX - slider.offsetLeft;
-                const walk = (x - startX) * 1.5; // Scroll speed multiplier
+                const walk = (x - startX) * 2; // Increased speed multiplier slightly
                 slider.scrollLeft = scrollLeft - walk;
-            };
+            });
 
-            slider.onmousemove = moveDrag;
-            
-            // Removed slider.ontouch... events so mobile uses buttery smooth native scrolling!
-
-            // 3. Track Click and Thumb Dragging (Mouse & Touch)
-            track.onclick = (e) => {
-                const rect = track.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const fraction = Math.max(0, Math.min(1, clickX / rect.width));
-                slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
-            };
-
+            // 3. Optimized Thumb Dragging & Track Clicking
             let isDraggingThumb = false;
-            thumb.onmousedown = (e) => { isDraggingThumb = true; slider.style.scrollBehavior = 'auto'; e.stopPropagation(); };
-            thumb.ontouchstart = (e) => { isDraggingThumb = true; slider.style.scrollBehavior = 'auto'; e.stopPropagation(); };
 
-            window.onmouseup = () => { isDraggingThumb = false; isDown = false; slider.classList.remove('cursor-grabbing'); slider.style.scrollBehavior = 'smooth'; };
-            window.ontouchend = () => { isDraggingThumb = false; isDown = false; slider.classList.remove('cursor-grabbing'); slider.style.scrollBehavior = 'smooth'; };
-
-            window.onmousemove = (e) => {
-                if(!isDraggingThumb) return;
+            track.addEventListener('mousedown', (e) => {
+                if (e.target === thumb) return; // Handled below
                 const rect = track.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const fraction = Math.max(0, Math.min(1, clickX / rect.width));
                 slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
+            });
+
+            const startThumbDrag = (e) => {
+                isDraggingThumb = true;
+                e.preventDefault();
+                e.stopPropagation();
             };
-            
-            window.ontouchmove = (e) => {
-                if(!isDraggingThumb) return;
+
+            thumb.addEventListener('mousedown', startThumbDrag);
+            thumb.addEventListener('touchstart', startThumbDrag, {passive: false});
+
+            const endThumbDrag = () => { isDraggingThumb = false; };
+            window.addEventListener('mouseup', endThumbDrag);
+            window.addEventListener('touchend', endThumbDrag);
+
+            const moveThumbDrag = (clientX) => {
+                if (!isDraggingThumb) return;
                 const rect = track.getBoundingClientRect();
-                const clickX = e.touches[0].clientX - rect.left;
+                const clickX = clientX - rect.left;
                 const fraction = Math.max(0, Math.min(1, clickX / rect.width));
                 slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
             };
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDraggingThumb) { e.preventDefault(); moveThumbDrag(e.clientX); }
+            });
+            
+            window.addEventListener('touchmove', (e) => {
+                if (isDraggingThumb) { e.preventDefault(); moveThumbDrag(e.touches[0].clientX); }
+            }, {passive: false});
         }
 
         function renderReviews() {
