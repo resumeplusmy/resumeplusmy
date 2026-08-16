@@ -326,12 +326,14 @@
                         <!-- Dynamic Success Stories will render here -->
                     </div>
                     
-                    <!-- Bottom Custom Slider / Scrollbar Indicator -->
-                    <div class="mt-8 flex items-center justify-center px-4 w-full">
-                        <div id="custom-slider-track" class="w-full max-w-4xl h-6 bg-gray-200 rounded-full relative cursor-pointer overflow-hidden shadow-inner border-2 border-gray-300">
-                            <!-- Removed the transition-all duration-75 to stop visual stuttering -->
-                            <div id="custom-slider-thumb" class="absolute top-0 left-0 h-full bg-brand-gold rounded-full cursor-grab active:cursor-grabbing shadow-md border-r-2 border-l-2 border-brand-dark hover:bg-yellow-400"></div>
-                        </div>
+                    <!-- Gallery Navigation Buttons -->
+                    <div class="mt-6 flex items-center justify-center space-x-8 px-4 w-full">
+                        <button onclick="scrollGallery('left')" class="w-14 h-14 rounded-full bg-brand-blue text-white flex items-center justify-center hover:bg-brand-dark transition shadow-[0_4px_15px_rgba(0,0,0,0.2)] border-2 border-brand-gold focus:outline-none transform hover:-translate-x-1 active:scale-95">
+                            <i class="fas fa-chevron-left text-2xl pr-1"></i>
+                        </button>
+                        <button onclick="scrollGallery('right')" class="w-14 h-14 rounded-full bg-brand-blue text-white flex items-center justify-center hover:bg-brand-dark transition shadow-[0_4px_15px_rgba(0,0,0,0.2)] border-2 border-brand-gold focus:outline-none transform hover:translate-x-1 active:scale-95">
+                            <i class="fas fa-chevron-right text-2xl pl-1"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -1612,53 +1614,29 @@
             setTimeout(setupStoryScrollMechanics, 50);
         }
 
+        function scrollGallery(direction) {
+            const slider = document.getElementById('success-stories-grid');
+            if (!slider || !slider.firstElementChild) return;
+            
+            // Calculate the width of one image + the gap distance (24px)
+            const scrollAmount = slider.firstElementChild.clientWidth + 24;
+            
+            if (direction === 'left') {
+                slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+
         function setupStoryScrollMechanics() {
             const slider = document.getElementById('success-stories-grid');
-            const track = document.getElementById('custom-slider-track');
-            const thumb = document.getElementById('custom-slider-thumb');
-            if(!slider || !track || !thumb) return;
+            if(!slider) return;
 
-            // 1. Hardware-Accelerated Thumb Updater
-            let ticking = false;
-            function updateThumb() {
-                if (!ticking) {
-                    window.requestAnimationFrame(() => {
-                        const clientWidth = slider.clientWidth;
-                        const scrollWidth = slider.scrollWidth;
-                        const maxScroll = scrollWidth - clientWidth;
+            // BUG FIX: Prevent attaching multiple listeners which causes massive lag
+            if (slider.dataset.dragAttached === 'true') return;
+            slider.dataset.dragAttached = 'true';
 
-                        if (maxScroll <= 0) {
-                            thumb.style.width = '100%';
-                            thumb.style.transform = `translateX(0px)`;
-                            ticking = false;
-                            return;
-                        }
-
-                        // Calculate width percentage
-                        const ratio = clientWidth / scrollWidth;
-                        const thumbWidth = Math.max(ratio * 100, 10);
-                        thumb.style.width = `${thumbWidth}%`;
-
-                        // GPU Accelerated Transform for moving the thumb (Buttery Smooth!)
-                        const scrollFraction = slider.scrollLeft / maxScroll;
-                        const maxThumbMove = track.clientWidth - thumb.clientWidth;
-                        const thumbX = scrollFraction * maxThumbMove;
-                        
-                        thumb.style.left = '0px'; 
-                        thumb.style.transform = `translateX(${thumbX}px)`;
-                        
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }
-
-            slider.removeEventListener('scroll', updateThumb);
-            slider.addEventListener('scroll', updateThumb);
-            window.addEventListener('resize', updateThumb);
-            updateThumb();
-
-            // 2. Optimized Mouse Dragging
+            // Optimized Mouse Dragging (Keep this so PC users can still click-and-drag if they want)
             let isDown = false;
             let startX;
             let scrollLeft;
@@ -1682,51 +1660,11 @@
 
             slider.addEventListener('mousemove', (e) => {
                 if (!isDown) return;
-                e.preventDefault(); // Stops text-selection flickering
+                e.preventDefault(); 
                 const x = e.pageX - slider.offsetLeft;
-                const walk = (x - startX) * 2; // Increased speed multiplier slightly
+                const walk = (x - startX) * 2; 
                 slider.scrollLeft = scrollLeft - walk;
             });
-
-            // 3. Optimized Thumb Dragging & Track Clicking
-            let isDraggingThumb = false;
-
-            track.addEventListener('mousedown', (e) => {
-                if (e.target === thumb) return; // Handled below
-                const rect = track.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const fraction = Math.max(0, Math.min(1, clickX / rect.width));
-                slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
-            });
-
-            const startThumbDrag = (e) => {
-                isDraggingThumb = true;
-                e.preventDefault();
-                e.stopPropagation();
-            };
-
-            thumb.addEventListener('mousedown', startThumbDrag);
-            thumb.addEventListener('touchstart', startThumbDrag, {passive: false});
-
-            const endThumbDrag = () => { isDraggingThumb = false; };
-            window.addEventListener('mouseup', endThumbDrag);
-            window.addEventListener('touchend', endThumbDrag);
-
-            const moveThumbDrag = (clientX) => {
-                if (!isDraggingThumb) return;
-                const rect = track.getBoundingClientRect();
-                const clickX = clientX - rect.left;
-                const fraction = Math.max(0, Math.min(1, clickX / rect.width));
-                slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
-            };
-
-            window.addEventListener('mousemove', (e) => {
-                if (isDraggingThumb) { e.preventDefault(); moveThumbDrag(e.clientX); }
-            });
-            
-            window.addEventListener('touchmove', (e) => {
-                if (isDraggingThumb) { e.preventDefault(); moveThumbDrag(e.touches[0].clientX); }
-            }, {passive: false});
         }
 
         function renderReviews() {
