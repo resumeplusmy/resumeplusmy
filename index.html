@@ -313,14 +313,24 @@
 
                 <!-- Static Testimonial Gallery -->
                 <div class="mb-16">
-                    <div class="flex justify-between items-center mb-6 border-b pb-2">
+                    <div class="flex justify-between items-center mb-2 border-b pb-2">
                         <h3 class="text-2xl font-bold text-gray-800">Recent Success Stories</h3>
                         <button id="admin-add-story-btn" onclick="addSuccessStory()" class="hidden bg-green-500 hover:bg-green-600 text-white text-sm font-bold px-3 py-1.5 rounded transition shadow-sm">
                             <i class="fas fa-plus mr-1"></i> Add Picture
                         </button>
                     </div>
-                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-6 snap-x snap-mandatory no-scrollbar">
+                    <p class="text-xs text-gray-500 mb-4 text-center md:text-left"><i class="fas fa-arrows-alt-h mr-1"></i> Drag to explore or use the slider below</p>
+                    
+                    <!-- Horizontal Scroll Gallery with Drag-to-Scroll Support -->
+                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-4 no-scrollbar cursor-grab active:cursor-grabbing select-none">
                         <!-- Dynamic Success Stories will render here -->
+                    </div>
+                    
+                    <!-- Bottom Custom Slider / Scrollbar Indicator -->
+                    <div class="mt-4 flex items-center justify-center">
+                        <div id="custom-slider-track" class="w-full max-w-md h-3 bg-gray-200 rounded-full relative cursor-pointer overflow-hidden shadow-inner">
+                            <div id="custom-slider-thumb" class="absolute top-0 left-0 h-full bg-brand-gold rounded-full transition-all duration-75 cursor-pointer shadow"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1587,15 +1597,104 @@
             
             successStories.forEach(story => {
                 const fallbackText = story.id.replace('default', 'Feedback ');
-                const deleteBtn = isAdmin ? `<button onclick="deleteSuccessStory('${story.id}')" class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-700 z-10"><i class="fas fa-trash"></i></button>` : '';
+                const deleteBtn = isAdmin ? `<button onclick="deleteSuccessStory('${story.id}')" class="absolute top-3 right-3 bg-red-600 text-white rounded-full w-9 h-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-700 z-20"><i class="fas fa-trash"></i></button>` : '';
                 
                 grid.innerHTML += `
-                    <div class="relative group aspect-[3/4] flex-none w-[80%] sm:w-[45%] md:w-[40%] lg:w-[30%] snap-center">
+                    <div class="relative group aspect-[3/4] flex-none w-[90%] sm:w-[80%] md:w-[60%] lg:w-[48%] max-w-[550px]">
                         ${deleteBtn}
-                        <img src="${story.src}" alt="Client Feedback" class="w-full h-full object-cover rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=${fallbackText}'">
+                        <img src="${story.src}" alt="Client Feedback" class="w-full h-full object-cover rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer border-2 border-gray-100" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/400x550/e2e8f0/64748b?text=${fallbackText}'" draggable="false">
                     </div>
                 `;
             });
+            
+            // Re-attach drag scroll and thumb update listeners after rendering
+            setTimeout(setupStoryScrollMechanics, 50);
+        }
+
+        function setupStoryScrollMechanics() {
+            const slider = document.getElementById('success-stories-grid');
+            const track = document.getElementById('custom-slider-track');
+            const thumb = document.getElementById('custom-slider-thumb');
+            if(!slider || !track || !thumb) return;
+
+            // 1. Update Thumb Width & Position based on scroll
+            function updateThumb() {
+                const scrollWidth = slider.scrollWidth - slider.clientWidth;
+                if (scrollWidth <= 0) {
+                    thumb.style.width = '100%';
+                    thumb.style.left = '0%';
+                    return;
+                }
+                const ratio = slider.clientWidth / slider.scrollWidth;
+                const thumbWidth = Math.max(ratio * 100, 15); // Min 15% width
+                const maxLeft = 100 - thumbWidth;
+                const scrollFraction = slider.scrollLeft / scrollWidth;
+                const thumbLeft = scrollFraction * maxLeft;
+
+                thumb.style.width = `${thumbWidth}%`;
+                thumb.style.left = `${thumbLeft}%`;
+            }
+
+            slider.removeEventListener('scroll', updateThumb);
+            slider.addEventListener('scroll', updateThumb);
+            updateThumb();
+
+            // 2. Click-Hold and Drag to Scroll for PC
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            slider.onmousedown = (e) => {
+                isDown = true;
+                slider.classList.add('cursor-grabbing');
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            };
+
+            slider.onmouseleave = () => {
+                isDown = false;
+                slider.classList.remove('cursor-grabbing');
+            };
+
+            slider.onmouseup = () => {
+                isDown = false;
+                slider.classList.remove('cursor-grabbing');
+            };
+
+            slider.onmousemove = (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 1.5; // Scroll speed multiplier
+                slider.scrollLeft = scrollLeft - walk;
+            };
+
+            // 3. Track Click and Thumb Dragging for the Bottom Slider
+            track.onclick = (e) => {
+                const rect = track.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const width = rect.width;
+                const fraction = clickX / width;
+                slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
+            };
+
+            let isDraggingThumb = false;
+            thumb.onmousedown = (e) => {
+                isDraggingThumb = true;
+                e.stopPropagation();
+            };
+
+            window.onmouseup = () => {
+                isDraggingThumb = false;
+            };
+
+            window.onmousemove = (e) => {
+                if(!isDraggingThumb) return;
+                const rect = track.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const fraction = Math.max(0, Math.min(1, clickX / rect.width));
+                slider.scrollLeft = fraction * (slider.scrollWidth - slider.clientWidth);
+            };
         }
 
         function renderReviews() {
