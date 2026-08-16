@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume+ | Professional Resume Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#0F2C59',
+                            dark: '#081730',
+                            gold: '#FACC15',
+                            light: '#F8FAFC'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 8px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px;
+            transform: translateX(-50%); font-size: 15px; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+        .toast.show { visibility: visible; animation: fadeinToast 0.5s, fadeoutToast 0.5s 4.5s; }
+        .toast.error { background-color: #ef4444; }
+        .toast.success { background-color: #10b981; }
+        
+        @keyframes fadeinToast { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+        @keyframes fadeoutToast { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;}
+        .modal.active { display: flex; animation: fadeIn 0.2s; }
+        
+        /* Star Rating */
+        .star-rating .fa-star { cursor: pointer; color: #cbd5e1; transition: color 0.2s; }
+        .star-rating .fa-star.active, .star-rating .fa-star:hover, .star-rating .fa-star:hover ~ .fa-star { color: #facc15; }
+
+        /* Admin Mode Spacing Adjustments */
+        body.admin-mode-active #chat-fab { bottom: 150px; }
+        body.admin-mode-active #chat-window { bottom: 220px; }
+        @media (min-width: 768px) {
+            body.admin-mode-active #chat-fab { bottom: 80px; }
+            body.admin-mode-active #chat-window { bottom: 150px; }
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <nav class="bg-brand-blue text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex items-center">
+                    <img id="main-logo" src="Logo.png" alt="Resume+ Logo" class="h-12 w-auto bg-white p-1 rounded-md" onerror="this.src='https://placehold.co/150x50/ffffff/0F2C59?text=Resume%2B'">
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <button onclick="switchTab('home')" class="nav-btn font-semibold hover:text-brand-gold transition px-3 py-2 text-brand-gold border-b-2 border-brand-gold" data-target="home">Home</button>
+                    <button onclick="switchTab('promo')" class="nav-btn font-semibold hover:text-brand-gold transition px-3 py-2" data-target="promo">August Promo</button>
+                    <button onclick="switchTab('payment')" class="nav-btn font-semibold hover:text-brand-gold transition px-3 py-2" data-target="payment">Pricing & Order</button>
+                    <button onclick="switchTab('reviews')" class="nav-btn font-semibold hover:text-brand-gold transition px-3 py-2" data-target="reviews">Client Feedback</button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="https://wa.me/60195059741" target="_blank" class="hidden sm:inline-flex bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-semibold transition items-center shadow-md">
+                        <i class="fab fa-whatsapp mr-2"></i> WhatsApp Us
+                    </a>
+                    <!-- Mobile menu button -->
+                    <button class="md:hidden text-white hover:text-brand-gold focus:outline-none" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-brand-dark pb-4 px-4 space-y-2">
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="block w-full text-left font-semibold text-white hover:text-brand-gold py-2" data-target="home">Home</button>
+            <button onclick="switchTab('promo'); toggleMobileMenu()" class="block w-full text-left font-semibold text-white hover:text-brand-gold py-2" data-target="promo">August Promo</button>
+            <button onclick="switchTab('payment'); toggleMobileMenu()" class="block w-full text-left font-semibold text-white hover:text-brand-gold py-2" data-target="payment">Pricing & Order</button>
+            <button onclick="switchTab('reviews'); toggleMobileMenu()" class="block w-full text-left font-semibold text-white hover:text-brand-gold py-2" data-target="reviews">Client Feedback</button>
+            <a href="https://wa.me/60195059741" target="_blank" class="block w-full text-center bg-green-500 hover:bg-green-600 text-white px-4 py-2 mt-2 rounded font-semibold transition shadow-md">
+                <i class="fab fa-whatsapp mr-2"></i> WhatsApp Us
+            </a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow">
+        
+        <section id="home" class="tab-content active">
+            <!-- Hero -->
+            <div class="bg-brand-blue text-white py-20 relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-10">
+                    <i class="fas fa-file-alt text-[20rem] -mt-10 -mr-10"></i>
+                </div>
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <span class="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide inline-block mb-4 shadow-lg border border-red-400">
+                            🔥 High Demand: Limit 50 People / Week
+                        </span>
+                        <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-6">Boost Your Career with <span class="text-brand-gold">Resume+</span></h1>
+                        <p class="text-lg md:text-xl text-gray-300 mb-8 max-w-lg">
+                            We help you craft professional, eye-catching resumes at highly affordable prices. Secure your dream job without breaking the bank.
+                        </p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                            <button onclick="switchTab('promo')" class="bg-brand-gold text-brand-dark hover:bg-yellow-400 px-8 py-3 rounded-lg font-bold text-lg transition shadow-lg text-center">
+                                View Promotions
+                            </button>
+                            <button onclick="switchTab('payment')" class="bg-white text-brand-blue hover:bg-gray-100 px-8 py-3 rounded-lg font-bold text-lg transition shadow-lg text-center">
+                                Order Now
+                            </button>
+                        </div>
+                    </div>
+                    <div class="hidden md:block shadow-2xl rounded-xl overflow-hidden border-4 border-brand-dark">
+                        <img id="hero-poster" src="Poster - 🚀 Boost Your Career!.png" alt="Boost Your Career Poster" class="w-full h-auto object-cover" onerror="this.src='https://placehold.co/600x800/0F2C59/FACC15?text=Career+Boost+Poster'">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tik Tok Promo -->
+            <div class="bg-gradient-to-r from-black via-gray-900 to-black text-white py-8 border-y-4 border-cyan-400">
+                <div class="max-w-7xl mx-auto px-4 text-center flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
+                    <i class="fab fa-tiktok text-4xl md:text-5xl text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]"></i>
+                    <div>
+                        <h3 class="text-2xl font-bold text-white">Free General Resume Template!</h3>
+                        <p class="text-gray-300">Just follow our new TikTok channel to grab yours instantly.</p>
+                    </div>
+                    <a href="https://www.tiktok.com/@resumeplusofficial" target="_blank" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold py-2 px-6 rounded-full transition shadow-[0_0_15px_rgba(34,211,238,0.5)]">
+                        Follow @ResumePlus
+                    </a>
+                </div>
+            </div>
+
+            <!-- Competitor Comparison -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-brand-blue mb-4">Why Choose Resume+?</h2>
+                    <p class="text-gray-600">See how we stack up against the competition.</p>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl shadow-xl border border-gray-200">
+                    <table class="w-full text-left border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-700 text-lg">
+                                <th class="p-5 border-b-2 border-gray-200 w-1/3">Feature</th>
+                                <th class="p-5 border-b-2 border-gray-200 w-1/3 text-center text-gray-500 font-semibold bg-gray-50">Company X</th>
+                                <th class="p-5 border-b-2 border-brand-gold w-1/3 text-center bg-brand-blue text-brand-gold font-bold text-xl rounded-tr-lg">Resume+</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-200">
+                                <td class="p-5 font-semibold text-gray-700">Starting Price</td>
+                                <td class="p-5 text-center text-gray-500">RM 150.00+</td>
+                                <td class="p-5 text-center font-bold text-green-600 bg-blue-50">RM 10.00 - RM 100.00</td>
+                            </tr>
+                            <tr class="border-b border-gray-200">
+                                <td class="p-5 font-semibold text-gray-700">Turnaround Time</td>
+                                <td class="p-5 text-center text-gray-500">7 - 14 Days</td>
+                                <td class="p-5 text-center font-bold text-brand-blue bg-blue-50">Fast (Limited slots ensure quality)</td>
+                            </tr>
+                            <tr class="border-b border-gray-200">
+                                <td class="p-5 font-semibold text-gray-700">1-to-1 Meetings</td>
+                                <td class="p-5 text-center text-gray-500"><i class="fas fa-times text-red-400"></i> Extra Charge</td>
+                                <td class="p-5 text-center font-bold text-brand-blue bg-blue-50"><i class="fas fa-check text-green-500"></i> Included in Pro Package</td>
+                            </tr>
+                            <tr>
+                                <td class="p-5 font-semibold text-gray-700">Interview Tips</td>
+                                <td class="p-5 text-center text-gray-500"><i class="fas fa-times text-red-400"></i> None</td>
+                                <td class="p-5 text-center font-bold text-brand-blue bg-blue-50"><i class="fas fa-check text-green-500"></i> Included</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="promo" class="tab-content py-12">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        <!-- Left: Poster -->
+                        <div class="bg-gray-100 flex items-center justify-center p-4 border-r border-gray-200">
+                            <img id="promo-poster" src="Promo Poster.png" class="w-full h-auto rounded-xl shadow-md" onerror="this.src='https://placehold.co/600x800/0F2C59/FACC15?text=Promo+Poster'">
+                        </div>
+                        
+                        <!-- Right: Interactive -->
+                        <div class="p-8 md:p-12 flex flex-col justify-center text-center md:text-left bg-gray-50 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] w-full h-full pointer-events-none"></div>
+                            
+                            <h2 id="promo-page-title" class="text-4xl md:text-5xl font-black mb-6 uppercase tracking-wider text-brand-blue relative z-10">August Promo</h2>
+                            
+                            <div class="bg-red-50 text-red-700 border border-red-200 rounded-lg p-4 inline-block font-bold animate-pulse mb-8 self-center md:self-start relative z-10 shadow-sm">
+                                <i class="fas fa-clock mr-2"></i> Limited Time Offer! Limited Slots Available.
+                            </div>
+                            
+                            <p class="text-gray-600 mb-8 text-lg relative z-10">Don't miss out on our special promotional packages. Secure your slot now before they run out and elevate your career!</p>
+
+                            <div class="relative z-10">
+                                <button onclick="switchTab('payment')" class="bg-brand-gold text-brand-dark hover:bg-yellow-400 px-10 py-4 rounded-full font-bold text-xl transition shadow-xl w-full sm:w-auto flex items-center justify-center md:justify-start">
+                                    Claim Promo Now <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="payment" class="tab-content py-12">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-brand-blue mb-4">Pricing & Order Process</h2>
+                    <p class="text-lg text-gray-600">Simple pricing, secure payments, fast results.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                    
+                    <!-- Pricing Poster -->
+                    <div class="bg-white rounded-2xl shadow-xl p-4 border border-gray-200">
+                        <h3 class="text-2xl font-bold text-center mb-4 text-brand-blue">Our Packages</h3>
+                        <img id="pricing-poster" src="Normal Pricing.png" alt="Normal Pricing Packages" class="w-full h-auto rounded-xl border border-gray-100" onerror="this.src='https://placehold.co/600x800/0F2C59/ffffff?text=Pricing+Packages'">
+                        <div class="mt-6 text-center">
+                            <p class="text-sm text-gray-500 italic">*Don't forget to check out our August Patriotik Promo for special rates!</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Steps -->
+                    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+                        <h3 class="text-3xl font-bold text-brand-blue mb-6 border-b pb-4">How to Order</h3>
+                        
+                        <div class="space-y-8">
+                            <!-- Step 1 -->
+                            <div class="flex">
+                                <div class="flex-shrink-0 mr-4">
+                                    <div class="w-10 h-10 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-xl">1</div>
+                                </div>
+                                <div class="w-full">
+                                    <h4 class="text-xl font-bold text-gray-800">Scan & Pay via Touch 'n Go</h4>
+                                    <p class="text-gray-600 mb-4 mt-1">We currently only accept payments via TNG eWallet. Please scan the QR code below or tap the button to pay directly.</p>
+                                    <div class="bg-gray-100 p-4 rounded-xl flex flex-col items-center justify-center space-y-4">
+                                        <img id="tng-qr" src="Payment QR.png" alt="TNG Payment QR" class="max-w-[250px] rounded-lg shadow-md border-2 border-brand-blue" onerror="this.src='https://placehold.co/250x250/ee3124/ffffff?text=TNG+QR'">
+                                        
+                                        <!-- TNG Direct Link Button -->
+                                        <a href="https://payment.tngdigital.com.my/sc/bDLnTuwkHi" target="_blank" class="bg-[#0054A6] hover:bg-[#004080] text-white font-bold py-3 px-6 rounded-lg shadow-md transition flex items-center w-full max-w-[250px] justify-center text-sm">
+                                            <i class="fas fa-mobile-alt mr-2"></i> Pay with TNG App
+                                        </a>
+                                    </div>
+                                    <p class="text-sm text-red-500 mt-3 font-semibold">⚠️ Mandatory: Take a screenshot of your successful payment receipt.</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="flex">
+                                <div class="flex-shrink-0 mr-4">
+                                    <div class="w-10 h-10 rounded-full bg-brand-blue text-white flex items-center justify-center font-bold text-xl">2</div>
+                                </div>
+                                <div>
+                                    <h4 class="text-xl font-bold text-gray-800">Fill the Order Form</h4>
+                                    <p class="text-gray-600 mt-1 mb-3">Upload your receipt and details in our Google Form to get onto the official paid customer list.</p>
+                                    <button onclick="openForm()" class="w-full bg-brand-gold text-brand-dark hover:bg-yellow-400 font-bold py-3 px-6 rounded-lg shadow-md transition flex justify-center items-center">
+                                        <i class="fas fa-clipboard-list mr-2"></i> Fill Google Form Now
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Manual Contact Option -->
+                            <div class="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                                <h5 class="font-bold text-brand-blue mb-2"><i class="fas fa-shield-alt mr-2"></i> Need to talk first?</h5>
+                                <p class="text-sm text-gray-600 mb-4">If you prefer a manual method or have questions before purchasing, feel free to contact us.</p>
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <a href="https://wa.me/60195059741" target="_blank" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded-lg font-semibold transition">
+                                        <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+                                    </a>
+                                    <a href="mailto:Resumeplus2001@gmail.com" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-center py-2 rounded-lg font-semibold transition">
+                                        <i class="fas fa-envelope mr-1"></i> Email
+                                    </a>
+                                </div>
+                                <div class="mt-4 flex justify-center">
+                                     <img src="ResumePlus_WhatsApp_QR.png" alt="WhatsApp QR" class="w-32 h-32 rounded-lg shadow-sm border border-gray-300" onerror="this.src='https://placehold.co/150x150/25D366/ffffff?text=WA+QR'">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="reviews" class="tab-content py-12">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold text-brand-blue mb-4">Client Feedback</h2>
+                    <p class="text-lg text-gray-600">See what our successful clients have to say, or leave your own review!</p>
+                </div>
+
+                <!-- Static Testimonial Gallery -->
+                <div class="mb-16">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Recent Success Stories</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <img src="Feedback 1.png" alt="Client Feedback 1" class="w-full h-auto rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=Feedback+1'">
+                        <img src="Feedback 2.png" alt="Client Feedback 2" class="w-full h-auto rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=Feedback+2'">
+                        <img src="Feedback 3.png" alt="Client Feedback 3" class="w-full h-auto rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=Feedback+3'">
+                        <img src="Feedback 4.png" alt="Client Feedback 4" class="w-full h-auto rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=Feedback+4'">
+                        <img src="Feedback 5.png" alt="Client Feedback 5" class="w-full h-auto rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=Feedback+5'">
+                    </div>
+                </div>
+
+                <!-- Interactive Community Reviews -->
+                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-gray-200">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h3 class="text-2xl font-bold text-gray-800">Community Reviews</h3>
+                        <div class="flex items-center space-x-3">
+                            <button id="admin-add-review-btn" onclick="openAdminReviewModal()" class="hidden bg-green-500 hover:bg-green-600 text-white text-sm font-bold px-3 py-1.5 rounded transition shadow-sm">
+                                <i class="fas fa-plus mr-1"></i> Add Review
+                            </button>
+                            <div id="auth-status-container">
+                                <button onclick="openLoginModal()" class="text-brand-blue font-semibold hover:underline">
+                                    <i class="fas fa-sign-in-alt mr-1"></i> Sign In to Review
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Input Form (Hidden by default, shown when logged in) -->
+                    <div id="review-form-container" class="hidden mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                        <h4 class="font-bold text-gray-700 mb-2">Leave a Rating</h4>
+                        <div class="star-rating text-2xl mb-4" id="star-selector">
+                            <i class="fas fa-star" data-val="1"></i>
+                            <i class="fas fa-star" data-val="2"></i>
+                            <i class="fas fa-star" data-val="3"></i>
+                            <i class="fas fa-star" data-val="4"></i>
+                            <i class="fas fa-star" data-val="5"></i>
+                        </div>
+                        <textarea id="review-text" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-blue focus:outline-none mb-4" placeholder="Share your experience..."></textarea>
+                        
+                        <!-- Image Upload Area -->
+                        <div class="mb-4">
+                            <input type="file" id="review-image-input" accept="image/*" class="hidden" onchange="handleReviewImageUpload(event)">
+                            <button onclick="document.getElementById('review-image-input').click()" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition flex items-center">
+                                <i class="fas fa-camera mr-2"></i> Attach Photo
+                            </button>
+                            <div id="review-image-preview-container" class="hidden mt-2 relative inline-block">
+                                <img id="review-image-preview" src="" class="h-20 rounded border border-gray-300">
+                                <button onclick="clearReviewImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                                <div id="review-image-scanning" class="hidden absolute inset-0 bg-black bg-opacity-70 text-white text-[10px] text-center font-bold flex items-center justify-center rounded p-1">AI Scanning...</div>
+                            </div>
+                        </div>
+
+                        <button onclick="submitReview()" id="submit-review-btn" class="bg-brand-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-brand-dark transition">
+                            Post Review
+                        </button>
+                    </div>
+
+                    <!-- Reviews List -->
+                    <div id="reviews-list" class="space-y-6">
+                        <!-- Dynamic reviews will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-brand-dark text-gray-400 py-8 border-t-4 border-brand-gold mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+                <h4 class="text-white text-xl font-bold mb-4">Resume+</h4>
+                <p class="text-sm mb-2">Affordable, professional resume services to boost your career prospects.</p>
+                <p class="text-sm">Limit: 50 clients per week.</p>
+            </div>
+            <div>
+                <h4 class="text-white text-lg font-bold mb-4">Contact Us</h4>
+                <p class="mb-2"><i class="fas fa-envelope mr-2"></i> Resumeplus2001@gmail.com</p>
+                <p class="mb-2"><i class="fab fa-whatsapp mr-2"></i> +6 019 505 9741</p>
+            </div>
+            <div>
+                <h4 class="text-white text-lg font-bold mb-4">Links</h4>
+                <div class="flex flex-col space-y-2 items-center md:items-start">
+                    <a href="https://t.me/+60195059741" target="_blank" class="hover:text-white transition"><i class="fab fa-telegram mr-2"></i> Telegram</a>
+                    <a href="https://www.tiktok.com/@resumeplusofficial" target="_blank" class="hover:text-white transition"><i class="fab fa-tiktok mr-2"></i> TikTok Channel</a>
+                    <a href="https://forms.gle/cy3CtC4eNCAvtu8w7" target="_blank" class="hover:text-white transition text-cyan-400"><i class="fas fa-file-download mr-2"></i> Free Template Form</a>
+                    
+                    <!-- Admin Login Button -->
+                    <button onclick="openAdminModal()" class="mt-4 text-xs text-gray-600 hover:text-brand-gold transition flex items-center border border-gray-600 px-3 py-1 rounded">
+                        <i class="fas fa-lock mr-2"></i> Staff Access
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs mt-8 pt-4 border-t border-gray-800">
+            &copy; 2026 Resume+. All rights reserved. 
+        </div>
+    </footer>
+
+    <!-- Ask Che' Gu FAB -->
+    <button id="chat-fab" onclick="toggleChat()" class="fixed bottom-20 md:bottom-6 right-6 z-[60] bg-brand-gold text-brand-dark rounded-full p-3 shadow-[0_4px_20px_rgba(0,0,0,0.3)] flex items-center hover:bg-yellow-400 transition-all duration-300 transform hover:scale-105 border-2 border-brand-dark group">
+        <div class="relative w-12 h-12 flex-shrink-0 group-hover:-rotate-12 transition-transform duration-300">
+            <img id="avatar-fab" src="3D_Teacher_Avatar.png" alt="Che' Gu" class="w-full h-full rounded-full object-cover border-2 border-white drop-shadow-md" onerror="this.src='https://placehold.co/100x100/0F2C59/FACC15?text=3D+Avatar'">
+            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+        </div>
+        <span class="font-bold text-lg font-black tracking-wide overflow-hidden whitespace-nowrap transition-all duration-300 max-w-0 opacity-0 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-3">Ask Che' Gu</span>
+    </button>
+
+    <!-- Chat Window (User Facing) -->
+    <div id="chat-window" class="hidden fixed bottom-36 md:bottom-24 right-6 w-[90%] sm:w-96 max-w-sm h-[450px] bg-white rounded-2xl shadow-2xl border border-gray-200 z-[60] flex flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0 origin-bottom-right">
+        <!-- Header -->
+        <div class="bg-brand-blue text-white p-4 flex justify-between items-center border-b-4 border-brand-gold shadow-sm z-10">
+            <div class="flex items-center">
+                <div class="bg-brand-gold rounded-full p-0.5 shadow-inner mr-3 relative w-12 h-12 flex-shrink-0 border-2 border-white">
+                    <img id="avatar-header" src="3D_Teacher_Avatar.png" alt="Che' Gu" class="w-full h-full rounded-full object-cover" onerror="this.src='https://placehold.co/100x100/0F2C59/FACC15?text=3D+Avatar'">
+                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-lg leading-tight">Che' Gu</h4>
+                    <p class="text-xs text-blue-200">Career Consultant</p>
+                </div>
+            </div>
+            <button onclick="toggleChat()" class="text-gray-300 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition"><i class="fas fa-chevron-down"></i></button>
+        </div>
+        <!-- Messages -->
+        <div id="chat-messages" class="flex-grow p-4 overflow-y-auto bg-gray-50 flex flex-col space-y-4">
+            <!-- Dynamic Messages -->
+        </div>
+        <!-- Input -->
+        <div class="p-3 bg-white border-t border-gray-200 flex items-center shadow-[0_-5px_10px_rgba(0,0,0,0.02)] z-10">
+            <input type="text" id="chat-user-input" class="flex-grow border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-brand-blue focus:ring-1 focus:ring-brand-blue transition-all" placeholder="Type a message...">
+            <button onclick="sendUserMessage()" class="bg-brand-blue text-white w-10 h-10 rounded-full ml-2 hover:bg-brand-dark transition flex items-center justify-center shadow-md"><i class="fas fa-paper-plane text-sm -ml-1"></i></button>
+        </div>
+    </div>
+
+    <!-- Admin Chat Dashboard Modal (Staff Facing) -->
+    <div id="admin-chat-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] mx-4 flex flex-col md:flex-row overflow-hidden relative">
+            <button onclick="closeModal('admin-chat-modal')" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 z-50 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow"><i class="fas fa-times text-xl"></i></button>
+            
+            <!-- Left: Chat List -->
+            <div class="w-full md:w-1/3 bg-gray-50 border-r border-gray-200 flex flex-col h-1/3 md:h-full">
+                <div class="p-4 bg-brand-dark text-white flex justify-between items-center shadow-sm z-10">
+                    <span class="font-bold"><i class="fas fa-inbox mr-2"></i>Live Inquiries</span>
+                    <span class="bg-red-500 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">1</span>
+                </div>
+                <div class="flex-grow overflow-y-auto">
+                    <div class="p-4 border-b border-gray-200 bg-blue-50 cursor-pointer border-l-4 border-brand-blue">
+                        <div class="flex justify-between items-start mb-1">
+                            <h5 class="font-bold text-brand-blue text-sm">Guest User</h5>
+                            <span class="text-[10px] text-gray-400">Just now</span>
+                        </div>
+                        <p class="text-xs text-gray-600 truncate" id="admin-sidebar-last-msg">Waiting for message...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Chat View -->
+            <div class="w-full md:w-2/3 flex flex-col h-2/3 md:h-full relative bg-white">
+                <div class="p-4 bg-white border-b border-gray-200 shadow-sm z-10 flex items-center">
+                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 mr-3">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">Guest User</h4>
+                        <p class="text-xs text-green-500">Active now</p>
+                    </div>
+                </div>
+                
+                <div id="admin-chat-messages" class="flex-grow p-4 bg-gray-50 overflow-y-auto flex flex-col space-y-4">
+                    <!-- Synced messages -->
+                </div>
+                
+                <div class="p-4 bg-white border-t border-gray-200 flex items-center">
+                    <input type="text" id="admin-chat-input" class="flex-grow border border-gray-300 rounded-full px-4 py-3 text-sm focus:outline-none focus:border-brand-gold focus:ring-2 focus:ring-brand-gold/30 transition-all bg-gray-50" placeholder="Type reply as Staff...">
+                    <button onclick="sendAdminMessage()" class="bg-brand-gold text-brand-dark font-bold px-6 py-3 rounded-full ml-3 hover:bg-yellow-400 transition shadow-md flex items-center">
+                        <i class="fas fa-reply mr-2 hidden sm:inline"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast -->
+    <div id="toast" class="toast">Message</div>
+
+    <!-- Image Viewer Modal -->
+    <div id="image-modal" class="modal" onclick="closeModal('image-modal')">
+        <div class="max-w-3xl w-full p-4 flex justify-center">
+            <img id="modal-image" src="" alt="Expanded View" class="max-h-[90vh] rounded-lg shadow-2xl">
+        </div>
+    </div>
+
+    <!-- Auth Modal (Login, Register & Verify) -->
+    <div id="login-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-sm w-full mx-4 relative overflow-hidden">
+            <button onclick="closeModal('login-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"><i class="fas fa-times text-xl"></i></button>
+            
+            <!-- Login View -->
+            <div id="auth-login-view" class="transition-all duration-300">
+                <h3 class="text-2xl font-bold text-brand-blue mb-2">Sign In</h3>
+                <p class="text-sm text-gray-600 mb-6">Welcome back! Please enter your details.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                        <input type="email" id="login-email" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="john@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                        <input type="password" id="login-pass" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="••••••••">
+                    </div>
+                    <button onclick="performLogin()" class="w-full bg-brand-gold text-brand-dark font-bold py-2 rounded-lg hover:bg-yellow-400 transition mt-2 shadow-md">
+                        Sign In
+                    </button>
+                </div>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Don't have an account? <button onclick="switchAuthView('register')" class="text-brand-blue font-bold hover:underline">Sign Up</button>
+                </p>
+            </div>
+
+            <!-- Register View -->
+            <div id="auth-register-view" class="hidden transition-all duration-300">
+                <h3 class="text-2xl font-bold text-brand-blue mb-2">Create Account</h3>
+                <p class="text-sm text-gray-600 mb-6">Join us to post reviews and engage.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="reg-name" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
+                        <input type="email" id="reg-email" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="john@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                        <input type="password" id="reg-pass" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="••••••••">
+                    </div>
+                    <button onclick="initiateRegistration()" class="w-full bg-brand-blue text-white font-bold py-2 rounded-lg hover:bg-brand-dark transition mt-2 shadow-md">
+                        Sign Up
+                    </button>
+                </div>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? <button onclick="switchAuthView('login')" class="text-brand-blue font-bold hover:underline">Sign In</button>
+                </p>
+            </div>
+
+            <!-- Verify View -->
+            <div id="auth-verify-view" class="hidden transition-all duration-300 text-center">
+                <div class="w-16 h-16 bg-blue-50 text-brand-blue rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-blue-100">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-brand-blue mb-2">Verify Email</h3>
+                <p class="text-sm text-gray-600 mb-6">We've sent a 6-digit code to <br><span id="verify-email-display" class="font-bold text-gray-800"></span></p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <input type="text" id="verify-code" class="w-full border border-gray-300 rounded-lg p-3 text-center text-2xl tracking-[0.3em] font-bold focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="------" maxlength="6">
+                    </div>
+                    <button onclick="verifyEmailCode()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition mt-2 shadow-md">
+                        Verify & Login
+                    </button>
+                </div>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    <button onclick="switchAuthView('register')" class="text-gray-500 hover:text-gray-800 transition"><i class="fas fa-arrow-left mr-1"></i> Back to Sign Up</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-modal" class="modal">
+        <div class="bg-brand-dark border border-gray-700 rounded-xl shadow-2xl p-6 sm:p-8 max-w-sm w-full mx-4 relative">
+            <button onclick="closeModal('admin-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <div class="flex items-center mb-4">
+                <i class="fas fa-user-shield text-brand-gold text-3xl mr-3"></i>
+                <h3 class="text-2xl font-bold text-white">Staff Access</h3>
+            </div>
+            <p class="text-sm text-gray-400 mb-6">Restricted area. Enter authorization PIN.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">Security PIN</label>
+                    <input type="password" id="admin-pin" class="w-full bg-gray-800 text-white border border-gray-600 rounded-lg p-3 text-center tracking-widest text-xl focus:ring-2 focus:ring-brand-gold focus:outline-none" placeholder="••••••">
+                </div>
+                <button onclick="tryAdminLogin()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-500 transition shadow-[0_0_10px_rgba(37,99,235,0.5)]">
+                    Authenticate
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Tab (Hidden initially) -->
+    <div id="admin-panel" class="hidden fixed bottom-0 left-0 w-full bg-gray-900 border-t-2 border-brand-gold p-3 z-50 text-white shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
+            <div class="flex items-center justify-between w-full md:w-auto">
+                <div class="flex items-center">
+                    <i class="fas fa-user-shield text-brand-gold text-2xl mr-3"></i>
+                    <div>
+                        <span class="font-bold text-sm sm:text-base">Admin Mode Active</span>
+                        <span class="text-xs text-gray-400 block">Logged in as: Resume+ Admin</span>
+                    </div>
+                </div>
+                <!-- Mobile Exit Button -->
+                <button onclick="logoutAdmin()" class="md:hidden bg-red-600 hover:bg-red-500 p-2 rounded text-xs transition font-bold"><i class="fas fa-sign-out-alt"></i></button>
+            <div class="flex flex-wrap justify-center gap-2 w-full md:w-auto mt-2 md:mt-0">
+                <button id="admin-save-btn" onclick="saveAdminChanges()" class="hidden bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-xs sm:text-sm transition font-bold animate-pulse shadow-[0_0_15px_rgba(22,163,74,0.6)]"><i class="fas fa-save mr-1"></i>Save</button>
+                <button onclick="openPromoSettingsModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded text-xs sm:text-sm transition"><i class="fas fa-tag mr-1"></i>Promo Name</button>
+                <button onclick="openPosterManager()" class="bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded text-xs sm:text-sm transition"><i class="fas fa-images mr-1"></i>Posters</button>
+                <button onclick="switchTab('reviews')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-xs sm:text-sm transition">Reviews</button>
+                <button onclick="mockManualChat()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-xs sm:text-sm transition"><i class="fas fa-comment-dots mr-1"></i>Chat</button>
+                <!-- Desktop Exit Button -->
+                <button onclick="logoutAdmin()" class="hidden md:inline-flex bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs sm:text-sm transition font-bold"><i class="fas fa-sign-out-alt mr-1"></i>Exit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Poster Manager Modal -->
+    <div id="poster-manager-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-lg w-full mx-4 relative">
+            <button onclick="closeModal('poster-manager-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            <h3 class="text-2xl font-bold text-brand-blue mb-4"><i class="fas fa-images mr-2"></i> Manage Posters</h3>
+            <p class="text-sm text-gray-600 mb-6">Select a poster to update and crop.</p>
+            
+            <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <span class="font-semibold text-gray-800 text-sm">Main Logo</span>
+                    <button onclick="editPoster('main-logo')" class="bg-brand-blue text-white px-3 py-1 rounded text-sm hover:bg-brand-dark transition">Update</button>
+                </div>
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <span class="font-semibold text-gray-800 text-sm">Home Hero Poster</span>
+                    <button onclick="editPoster('hero-poster')" class="bg-brand-blue text-white px-3 py-1 rounded text-sm hover:bg-brand-dark transition">Update</button>
+                </div>
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <span class="font-semibold text-gray-800 text-sm">Special Promo Poster</span>
+                    <button onclick="editPoster('promo-poster')" class="bg-brand-blue text-white px-3 py-1 rounded text-sm hover:bg-brand-dark transition">Update</button>
+                </div>
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <span class="font-semibold text-gray-800 text-sm">Pricing Packages Poster</span>
+                    <button onclick="editPoster('pricing-poster')" class="bg-brand-blue text-white px-3 py-1 rounded text-sm hover:bg-brand-dark transition">Update</button>
+                </div>
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <span class="font-semibold text-gray-800">Touch 'n Go QR Code</span>
+                    <button onclick="editPoster('tng-qr')" class="bg-brand-blue text-white px-3 py-1 rounded text-sm hover:bg-brand-dark transition">Update</button>
+                </div>
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <span class="font-semibold text-gray-800">Che' Gu Avatar</span>
+                    <button onclick="editPoster('avatar')" class="bg-brand-blue text-white px-3 py-1 rounded text-sm hover:bg-brand-dark transition">Update</button>
+                </div>
+            </div>
+            <!-- Hidden file input for poster selection -->
+            <input type="file" id="poster-file-input" accept="image/*" class="hidden" onchange="handlePosterSelect(event)">
+        </div>
+    </div>
+
+    <!-- Promo Settings Modal -->
+    <div id="promo-settings-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-sm w-full mx-4 relative">
+            <button onclick="closeModal('promo-settings-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            <h3 class="text-2xl font-bold text-brand-blue mb-4"><i class="fas fa-tag mr-2"></i> Promo Settings</h3>
+            <p class="text-sm text-gray-600 mb-6">Update the tab name and title for the Special Promotion page.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Promo Title Name</label>
+                    <input type="text" id="admin-promo-title-input" class="w-full border border-gray-300 bg-gray-50 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="e.g., August Promo">
+                </div>
+                <button onclick="savePromoTitle()" class="w-full bg-brand-gold text-brand-dark font-bold py-2 rounded-lg hover:bg-yellow-400 transition shadow-md">
+                    Apply Change
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Review Modal -->
+    <div id="admin-review-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-sm w-full mx-4 relative">
+            <button onclick="closeModal('admin-review-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            <h3 id="admin-review-modal-title" class="text-2xl font-bold text-brand-blue mb-4"><i class="fas fa-edit mr-2"></i> Edit Review</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Author Name</label>
+                    <input type="text" id="admin-review-author" class="w-full border border-gray-300 bg-gray-50 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="John Doe">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Role / Subtitle</label>
+                    <input type="text" id="admin-review-role" class="w-full border border-gray-300 bg-gray-50 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="e.g. Happy Client">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Rating</label>
+                    <div class="star-rating text-2xl mb-2" id="admin-review-stars">
+                        <i class="fas fa-star text-brand-gold" data-val="1"></i>
+                        <i class="fas fa-star text-brand-gold" data-val="2"></i>
+                        <i class="fas fa-star text-brand-gold" data-val="3"></i>
+                        <i class="fas fa-star text-brand-gold" data-val="4"></i>
+                        <i class="fas fa-star text-brand-gold" data-val="5"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Review Text</label>
+                    <textarea id="admin-review-text" rows="3" class="w-full border border-gray-300 bg-gray-50 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-brand-blue focus:outline-none" placeholder="Write the review here..."></textarea>
+                </div>
+                <button onclick="saveAdminReview()" class="w-full bg-brand-gold text-brand-dark font-bold py-2 rounded-lg hover:bg-yellow-400 transition shadow-md">
+                    Save Review
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper Modal -->
+    <div id="cropper-modal" class="modal z-[70]">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 relative flex flex-col h-[70vh] sm:h-[80vh]">
+            <h3 class="text-xl font-bold text-brand-blue mb-4">Crop Image</h3>
+            <div class="flex-grow bg-gray-200 rounded-lg overflow-hidden relative flex items-center justify-center h-full w-full">
+                <img id="image-to-crop" src="" alt="Picture to crop" class="max-w-full max-h-full block">
+            </div>
+            <div class="mt-4 flex justify-end space-x-3 flex-shrink-0">
+                <button onclick="cancelCrop()" class="px-5 py-2 font-bold bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                <button onclick="saveCroppedPoster()" class="px-5 py-2 font-bold bg-brand-blue text-white rounded-lg hover:bg-brand-dark transition shadow-md">Crop & Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsaved Changes Warning Modal -->
+    <div id="unsaved-modal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 text-center">
+            <div class="text-yellow-500 text-5xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Unsaved Changes</h3>
+            <p class="text-sm text-gray-600 mb-6">You have preview updates that haven't been saved. If you exit now, they will be lost.</p>
+            <div class="flex flex-col space-y-3">
+                <button onclick="saveAdminChanges(); forceLogoutAdmin(); closeModal('unsaved-modal');" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg transition">Save & Exit</button>
+                <button onclick="forceLogoutAdmin(); closeModal('unsaved-modal');" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg transition">Exit Without Saving</button>
+                <button onclick="closeModal('unsaved-modal')" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 rounded-lg transition">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STREAMING_CHUNK:Initializing state variables... ---
+        
+        // --- Cloud Database Integration ---
+        let db, auth, getDoc, doc, setDoc, onSnapshot, collection;
+        let appId = 'resumeplus-production'; 
+        let isCloudReady = false;
+
+        // 🔴 PASTE YOUR FIREBASE CONFIG HERE LATER 🔴
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyDlNWfP0oYtU8cHnpU5h3H8D83mC2qTyPY",
+            authDomain: "resumeplus-d21cf.firebaseapp.com",
+            projectId: "resumeplus-d21cf",
+            storageBucket: "resumeplus-d21cf.appspot.com",
+            messagingSenderId: "372933654809",
+            appId: "1:372933654809:web:7c1eaf328a25795f39ed88"
+        };
+
+        async function initCloud() {
+            try {
+                // Use the hardcoded config above
+                const firebaseConfig = myFirebaseConfig;
+                
+                // Add a check to prevent crashing if keys are not set yet
+                if (firebaseConfig.apiKey === "PASTE_HERE" || firebaseConfig.appId === "PASTE_HERE") {
+                    console.warn("Firebase keys not completely set. Running in local preview mode.");
+                    return; // Skip cloud initialization
+                }
+
+                const firebaseApp = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+                const firebaseAuth = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+                const firebaseFirestore = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+
+                const app = firebaseApp.initializeApp(firebaseConfig);
+                auth = firebaseAuth.getAuth(app);
+                db = firebaseFirestore.getFirestore(app);
+
+                getDoc = firebaseFirestore.getDoc;
+                doc = firebaseFirestore.doc;
+                setDoc = firebaseFirestore.setDoc;
+                onSnapshot = firebaseFirestore.onSnapshot;
+                collection = firebaseFirestore.collection;
+
+                // Always use anonymous authentication to securely read/write to the database
+                await firebaseAuth.signInAnonymously(auth);
+                
+                isCloudReady = true;
+                startCloudSync();
+                console.log("Successfully connected to Firebase!");
+            } catch (e) {
+                console.warn("Cloud init issue (Running locally instead):", e.code || e.message);
+                
+                // Provide specific error messages based on what Firebase returns
+                if (e.code === 'auth/admin-restricted-operation') {
+                    showToast("Firebase Blocked: Please enable 'Anonymous' sign-in in Firebase Console!", "error");
+                } else if (e.code === 'auth/configuration-not-found') {
+                    showToast("Firebase Alert: Auth not configured yet. Running locally.", "error");
+                } else {
+                    showToast("Running in local mode. Connect Firebase to save permanently.", "error");
+                }
+                
+                isCloudReady = false;
+                // Ensure the site still loads local preview data even if cloud fails
+                renderReviews();
+                renderChat();
+            }
+        }
+
+        function startCloudSync() {
+            // 1. Sync Users
+            const usersRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'users');
+            onSnapshot(usersRef, (snapshot) => {
+                if (snapshot.exists()) mockUsersDB = snapshot.data().list || [];
+            }, (err) => console.error("Cloud Users Error:", err));
+
+            // 2. Sync Reviews
+            const reviewsRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'reviews');
+            onSnapshot(reviewsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    reviews = snapshot.data().list || [];
+                    renderReviews();
+                } else {
+                    syncReviewsToCloud(); // Seed initial data
+                }
+            }, (err) => console.error("Cloud Reviews Error:", err));
+
+            // 3. Sync Chat
+            const chatRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'chat');
+            onSnapshot(chatRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    chatHistory = snapshot.data().history || [];
+                    renderChat();
+                } else {
+                    syncChatToCloud(); // Seed initial data
+                }
+            }, (err) => console.error("Cloud Chat Error:", err));
+
+            // 4. Load Saved Posters
+            const posterIds = ['main-logo', 'hero-poster', 'pricing-poster', 'tng-qr', 'avatar', 'promo-poster'];
+            posterIds.forEach(async (id) => {
+                try {
+                    const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'posters', id);
+                    const pSnap = await getDoc(pRef);
+                    if (pSnap.exists() && pSnap.data().data) {
+                        const savedSrc = pSnap.data().data;
+                        if (id === 'avatar') {
+                            document.getElementById('avatar-fab').src = savedSrc;
+                            document.getElementById('avatar-header').src = savedSrc;
+                            currentAvatarUrl = savedSrc;
+                        } else {
+                            const img = document.getElementById(id);
+                            if (img) img.src = savedSrc;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to load poster:", id, e);
+                }
+            });
+
+            // 5. Sync Site Settings (Promo Title)
+            const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'settings');
+            onSnapshot(settingsRef, (snapshot) => {
+                if (snapshot.exists() && snapshot.data().promoTitle) {
+                    currentPromoTitle = snapshot.data().promoTitle;
+                    updatePromoTitleUI(currentPromoTitle);
+                }
+            }, (err) => console.error("Cloud Settings Error:", err));
+
+            renderChat();
+        }
+
+        // Cloud Sync Helpers
+        function syncReviewsToCloud() {
+            if(!isCloudReady) return;
+            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'reviews'), { list: reviews }).catch(e => console.error(e));
+        }
+        function syncChatToCloud() {
+            if(!isCloudReady) return;
+            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'chat'), { history: chatHistory }).catch(e => console.error(e));
+        }
+        function syncUsersToCloud() {
+            if(!isCloudReady) return;
+            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'users'), { list: mockUsersDB }).catch(e => console.error(e));
+        }
+
+        // --- State Management ---
+        let currentUser = null; // null or {name, email}
+        let isAdmin = false;
+        let selectedRating = 0;
+        
+        let pendingReviewImage = null; // Stores object URL for uploaded review picture
+        let cropper = null; // Holds Cropper.js instance
+        let currentPosterEditing = null; // Holds the ID of the poster being updated
+
+        let hasUnsavedChanges = false;
+        let unsavedImages = {}; // Track changes mapped by element ID
+        let unsavedPromoTitle = null;
+        let currentPromoTitle = "August Promo";
+
+        // Mock Reviews Data
+        let reviews = [
+            { id: 1, author: "Aisyah Binti Rahman", role: "HR Executive", rating: 5, text: "The review was spot on. My resume looks sharper and more professional now!", replies: [] },
+            { id: 2, author: "Mohd Amirul", role: "Customer Service", rating: 4, text: "Affordable service but the quality is top-notch. Highly recommend.", replies: [{ author: "Resume+ Admin", isAdmin: true, text: "Thank you Amirul! We are glad we could help."}] }
+        ];
+
+        // --- Navigation ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update navbar styling
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-gold', 'border-b-2', 'border-brand-gold');
+                if(btn.getAttribute('data-target') === tabId) {
+                    btn.classList.add('text-brand-gold', 'border-b-2', 'border-brand-gold');
+                }
+            });
+            window.scrollTo(0,0);
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- Notifications ---
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 4000);
+        }
+
+        function openForm() {
+            showToast("Redirecting to Google Form...", "success");
+            setTimeout(() => {
+                window.open('https://forms.gle/TdK3GfXYpq9UhXS28', '_blank');
+            }, 1000);
+        }
+
+        // --- Modals ---
+        function openLoginModal() { 
+            switchAuthView('login');
+            document.getElementById('login-modal').classList.add('active'); 
+        }
+        function openAdminModal() { document.getElementById('admin-modal').classList.add('active'); document.getElementById('admin-pin').value = ''; }
+        function openPosterManager() { document.getElementById('poster-manager-modal').classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        
+        function openPromoSettingsModal() {
+            document.getElementById('admin-promo-title-input').value = unsavedPromoTitle || currentPromoTitle;
+            document.getElementById('promo-settings-modal').classList.add('active');
+        }
+
+        function savePromoTitle() {
+            const newTitle = document.getElementById('admin-promo-title-input').value.trim();
+            if(!newTitle) { showToast("Title cannot be empty", "error"); return; }
+            
+            unsavedPromoTitle = newTitle;
+            updatePromoTitleUI(newTitle);
+            
+            hasUnsavedChanges = true;
+            document.getElementById('admin-save-btn').classList.remove('hidden');
+            closeModal('promo-settings-modal');
+            showToast("Promo title updated. Don't forget to save changes!", "success");
+        }
+
+        function updatePromoTitleUI(title) {
+            document.querySelectorAll('[data-target="promo"]').forEach(btn => btn.textContent = title);
+            document.getElementById('promo-page-title').textContent = title;
+        }
+
+        function viewImage(src) {
+            document.getElementById('modal-image').src = src;
+            document.getElementById('image-modal').classList.add('active');
+        }
+
+        // --- User Authentication (Registration, Verification & Login Mock) ---
+        let mockUsersDB = [];
+        let tempRegData = null;
+        let currentMockOTP = null;
+
+        function switchAuthView(view) {
+            document.getElementById('auth-login-view').classList.add('hidden');
+            document.getElementById('auth-register-view').classList.add('hidden');
+            document.getElementById('auth-verify-view').classList.add('hidden');
+            document.getElementById(`auth-${view}-view`).classList.remove('hidden');
+        }
+
+        function initiateRegistration() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-pass').value.trim();
+
+            if (!name || !email || !pass) {
+                showToast("Please fill all registration fields", "error");
+                return;
+            }
+
+            if (mockUsersDB.find(u => u.email === email)) {
+                showToast("Email is already registered. Please sign in.", "error");
+                switchAuthView('login');
+                return;
+            }
+
+            tempRegData = { name, email, pass };
+            
+            // Generate 6-digit mock OTP
+            currentMockOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            document.getElementById('verify-email-display').textContent = email;
+            switchAuthView('verify');
+            
+            // Simulate sending email by showing a toast with the code (Visible for testing)
+            showToast(`MOCK EMAIL SENT! Your verification code is: ${currentMockOTP}`, "success");
+            console.log(`[Email Simulation] Verification code for ${email} is: ${currentMockOTP}`);
+        }
+
+        function verifyEmailCode() {
+            const code = document.getElementById('verify-code').value.trim();
+            
+            if (code !== currentMockOTP) {
+                showToast("Invalid verification code. Try again.", "error");
+                return;
+            }
+
+            // Save user to DB
+            const newUser = {
+                name: tempRegData.name,
+                email: tempRegData.email,
+                pass: tempRegData.pass // Storing in DB simulation
+            };
+            
+            mockUsersDB.push(newUser);
+            syncUsersToCloud(); // Save to Cloud
+
+            // Log them in
+            currentUser = { name: newUser.name, email: newUser.email };
+            isAdmin = false;
+            
+            // Cleanup
+            document.getElementById('reg-name').value = '';
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-pass').value = '';
+            document.getElementById('verify-code').value = '';
+            tempRegData = null;
+            currentMockOTP = null;
+
+            closeModal('login-modal');
+            showToast(`Registration successful! Welcome, ${newUser.name}!`);
+            updateReviewUI();
+        }
+
+        function performLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+
+            if (!email || !pass) {
+                showToast("Please enter email and password", "error");
+                return;
+            }
+
+            const user = mockUsersDB.find(u => u.email === email && u.pass === pass);
+
+            if (user) {
+                currentUser = { name: user.name, email: user.email };
+                isAdmin = false;
+                
+                // Clear fields
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-pass').value = '';
+
+                closeModal('login-modal');
+                showToast(`Welcome back, ${user.name}!`);
+                updateReviewUI();
+            } else {
+                showToast("Invalid email or password", "error");
+            }
+        }
+
+        // --- Admin Authentication (Mock) ---
+        function tryAdminLogin() {
+            const pin = document.getElementById('admin-pin').value;
+            if (pin === '080985') {
+                isAdmin = true;
+                currentUser = { name: "Resume+ Admin", role: "Administrator", isAdmin: true };
+                closeModal('admin-modal');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.body.classList.add('admin-mode-active');
+                showToast("Admin Mode Activated", "success");
+                
+                // Switch to reviews to show admin reply buttons
+                switchTab('reviews');
+                updateReviewUI();
+            } else {
+                // FAILED PIN - Warning System Requirement
+                showToast("Security Alert: Invalid PIN.", "error");
+                
+                // Simulate sending warning email
+                console.warn("UNAUTHORIZED ACCESS ATTEMPT DETECTED.");
+                console.log("--> Sending Warning Email to: Resumeplus2001@gmail.com");
+                console.log("--> Subject: Security Alert - Unauthorized Admin Login Attempt");
+                
+                // Visual feedback of email warning
+                setTimeout(() => {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-2xl z-50 font-bold border-2 border-red-300 animate-bounce';
+                    alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Warning email sent to Resumeplus2001@gmail.com';
+                    document.body.appendChild(alertDiv);
+                    setTimeout(() => alertDiv.remove(), 4000);
+                }, 500);
+
+                document.getElementById('admin-pin').value = '';
+            }
+        }
+
+        function logoutAdmin() {
+            if (hasUnsavedChanges) {
+                document.getElementById('unsaved-modal').classList.add('active');
+            } else {
+                forceLogoutAdmin();
+            }
+        }
+
+        function forceLogoutAdmin() {
+            isAdmin = false;
+            currentUser = null;
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.body.classList.remove('admin-mode-active');
+            
+            // Revert unsaved preview changes
+            if (hasUnsavedChanges) {
+                if (unsavedPromoTitle !== null) {
+                    updatePromoTitleUI(currentPromoTitle);
+                    unsavedPromoTitle = null;
+                }
+
+                for (const [id, originalData] of Object.entries(unsavedImages)) {
+                    const revertedSrc = originalData.default;
+                    if (id === 'avatar') {
+                        document.getElementById('avatar-fab').src = revertedSrc;
+                        document.getElementById('avatar-header').src = revertedSrc;
+                        currentAvatarUrl = revertedSrc;
+                        renderChat();
+                    } else {
+                        const targetImg = document.getElementById(id);
+                        if (targetImg) targetImg.src = revertedSrc;
+                    }
+                }
+            }
+
+            hasUnsavedChanges = false;
+            unsavedImages = {};
+            document.getElementById('admin-save-btn').classList.add('hidden');
+            
+            showToast("Logged out of Admin Mode");
+            updateReviewUI();
+        }
+
+        let currentAvatarUrl = '3D_Teacher_Avatar.png';
+        function getCheGuAvatarHtml() {
+            return `<img src="${currentAvatarUrl}" class="w-6 h-6 inline-block mr-1 align-middle rounded-full object-cover border border-brand-gold bg-white" onerror="this.src='https://placehold.co/50x50/0F2C59/FACC15?text=CG'" alt="Che Gu">`;
+        }
+
+        let chatHistory = [
+            { sender: 'bot', text: 'Hello! I am Che\' Gu. How can I help you boost your career today?' }
+        ];
+        let botReplyTimeout = null;
+
+        function toggleChat() {
+            const win = document.getElementById('chat-window');
+            if (win.classList.contains('hidden')) {
+                win.classList.remove('hidden');
+                setTimeout(() => {
+                    win.classList.remove('scale-95', 'opacity-0');
+                    win.classList.add('scale-100', 'opacity-100');
+                }, 10);
+                renderChat();
+                
+                // Add Enter key listener to User input
+                const input = document.getElementById('chat-user-input');
+                if(!input.hasAttribute('data-listener')) {
+                    input.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') sendUserMessage();
+                    });
+                    input.setAttribute('data-listener', 'true');
+                }
+            } else {
+                win.classList.remove('scale-100', 'opacity-100');
+                win.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => win.classList.add('hidden'), 300);
+            }
+        }
+
+        function renderChat() {
+            const userContainer = document.getElementById('chat-messages');
+            const adminContainer = document.getElementById('admin-chat-messages');
+            
+            let userHtml = '';
+            let adminHtml = '';
+
+            chatHistory.forEach(msg => {
+                if (msg.sender === 'user') {
+                    // User sees their message on the right
+                    userHtml += `<div class="self-end bg-brand-blue text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm text-sm leading-relaxed">${msg.text}</div>`;
+                    // Admin sees user message on the left
+                    adminHtml += `<div class="self-start bg-gray-200 text-gray-800 px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm text-sm leading-relaxed"><strong>Guest:</strong><br>${msg.text}</div>`;
+                } else if (msg.sender === 'bot' || msg.sender === 'admin') {
+                    const name = msg.sender === 'admin' ? 'Che\' Gu (Staff)' : `${getCheGuAvatarHtml()} Che\' Gu`;
+                    const style = msg.sender === 'admin' ? 'bg-brand-gold text-brand-dark' : 'bg-white text-gray-800 border border-gray-200';
+                    
+                    // User sees bot/admin message on the left
+                    userHtml += `<div class="self-start ${style} px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm text-sm leading-relaxed"><strong>${name}:</strong><br>${msg.text}</div>`;
+                    // Admin sees their reply on the right
+                    adminHtml += `<div class="self-end bg-brand-blue text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm text-sm leading-relaxed"><strong>You (Staff):</strong><br>${msg.text}</div>`;
+                }
+            });
+
+            if(userContainer) {
+                userContainer.innerHTML = userHtml;
+                userContainer.scrollTop = userContainer.scrollHeight;
+            }
+            if(adminContainer) {
+                adminContainer.innerHTML = adminHtml;
+                adminContainer.scrollTop = adminContainer.scrollHeight;
+                
+                // Update Admin Sidebar Preview
+                const lastMsg = chatHistory[chatHistory.length - 1];
+                const sidebarText = document.getElementById('admin-sidebar-last-msg');
+                if(sidebarText) sidebarText.textContent = lastMsg ? lastMsg.text : 'Waiting for message...';
+            }
+        }
+
+        function sendUserMessage() {
+            const input = document.getElementById('chat-user-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            chatHistory.push({ sender: 'user', text: text });
+            input.value = '';
+            renderChat();
+            syncChatToCloud(); // Save to cloud
+
+            const adminModal = document.getElementById('admin-chat-modal');
+            // If the admin is NOT actively viewing the chat dashboard, trigger auto-reply
+            if (!adminModal.classList.contains('active')) {
+                clearTimeout(botReplyTimeout);
+                botReplyTimeout = setTimeout(() => {
+                    chatHistory.push({ sender: 'bot', text: 'Thank you for reaching out! A member of our staff will check this shortly. If urgent, feel free to use the WhatsApp button above.' });
+                    renderChat();
+                    syncChatToCloud(); // Save bot reply to cloud
+                }, 1500); 
+            }
+        }
+
+        function sendAdminMessage() {
+            const input = document.getElementById('admin-chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            clearTimeout(botReplyTimeout); // Cancel any pending bot auto-replies
+            chatHistory.push({ sender: 'admin', text: text });
+            input.value = '';
+            renderChat();
+            syncChatToCloud(); // Save to cloud
+            
+            // Auto-open user's chat window if it was closed so they see the manual reply
+            const win = document.getElementById('chat-window');
+            if (win.classList.contains('hidden')) {
+                toggleChat();
+            }
+        }
+
+        function mockManualChat() {
+            document.getElementById('admin-chat-modal').classList.add('active');
+            renderChat(); // Ensure messages are loaded when opened
+            
+            // Setup Enter key for Admin input
+            const input = document.getElementById('admin-chat-input');
+            if(!input.hasAttribute('data-listener')) {
+                input.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') sendAdminMessage();
+                });
+                input.setAttribute('data-listener', 'true');
+            }
+        }
+
+        // --- Review System ---
+        // Star Selection
+        document.querySelectorAll('#star-selector i').forEach(star => {
+            star.addEventListener('click', (e) => {
+                selectedRating = parseInt(e.target.getAttribute('data-val'));
+                document.querySelectorAll('#star-selector i').forEach(s => {
+                    if (parseInt(s.getAttribute('data-val')) <= selectedRating) {
+                        s.classList.add('text-brand-gold'); s.classList.remove('text-gray-300');
+                    } else {
+                        s.classList.remove('text-brand-gold'); s.classList.add('text-gray-300');
+                    }
+                });
+            });
+        });
+
+        // --- Image Upload & AI Moderation (Customer) ---
+        function handleReviewImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const container = document.getElementById('review-image-preview-container');
+            const preview = document.getElementById('review-image-preview');
+            const scanning = document.getElementById('review-image-scanning');
+            const submitBtn = document.getElementById('submit-review-btn');
+
+            // Show preview and loading state
+            container.classList.remove('hidden');
+            preview.src = URL.createObjectURL(file);
+            scanning.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Simulate Smart AI Moderation (Delay for processing)
+            setTimeout(() => {
+                // Mock Logic: Rejects if filename contains 'nsfw' or 'violent', plus a 10% random chance to simulate false positives/blocks
+                const isNsfw = file.name.toLowerCase().includes('nsfw') || file.name.toLowerCase().includes('violent') || Math.random() < 0.1;
+
+                scanning.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                if (isNsfw) {
+                    showToast("Security Alert: Image rejected due to explicit/violent content policy.", "error");
+                    clearReviewImage();
+                } else {
+                    showToast("Image passed security scan.", "success");
+                    pendingReviewImage = preview.src; // Keep the object URL attached
+                }
+            }, 2000);
+        }
+
+        function clearReviewImage() {
+            document.getElementById('review-image-input').value = '';
+            document.getElementById('review-image-preview-container').classList.add('hidden');
+            document.getElementById('review-image-preview').src = '';
+            pendingReviewImage = null;
+        }
+
+        // --- Admin Poster Management (Upload, Crop, Update) ---
+        function editPoster(imageId) {
+            currentPosterEditing = imageId;
+            document.getElementById('poster-file-input').click();
+        }
+
+        function handlePosterSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            const imageToCrop = document.getElementById('image-to-crop');
+            imageToCrop.src = url;
+            
+            closeModal('poster-manager-modal');
+            document.getElementById('cropper-modal').classList.add('active');
+
+            if (cropper) { cropper.destroy(); }
+
+            // Initialize Cropper slightly after modal display
+            setTimeout(() => {
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: NaN, // Allow free cropping
+                    viewMode: 1,
+                    background: false
+                });
+            }, 100);
+        }
+
+        function saveCroppedPoster() {
+            if (!cropper) return;
+            
+            // Get cropped image data, compress size to ensure it fits in Cloud Database
+            cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800 }).toBlob((blob) => {
+                const newUrl = URL.createObjectURL(blob);
+                
+                // Store original state if we haven't modified this specific image yet
+                if (!unsavedImages[currentPosterEditing]) {
+                    const defaultSrc = currentPosterEditing === 'avatar' ? document.getElementById('avatar-fab').src : document.getElementById(currentPosterEditing).src;
+                    unsavedImages[currentPosterEditing] = { default: defaultSrc, newBlob: blob };
+                } else {
+                    unsavedImages[currentPosterEditing].newBlob = blob;
+                }
+
+                // Apply the new URL to the specific elements
+                if (currentPosterEditing === 'avatar') {
+                    document.getElementById('avatar-fab').src = newUrl;
+                    document.getElementById('avatar-header').src = newUrl;
+                    currentAvatarUrl = newUrl;
+                    renderChat(); // Refresh chat avatars
+                } else {
+                    const targetImg = document.getElementById(currentPosterEditing);
+                    if (targetImg) targetImg.src = newUrl;
+                }
+
+                hasUnsavedChanges = true;
+                document.getElementById('admin-save-btn').classList.remove('hidden');
+                showToast("Preview updated. Don't forget to Save Changes!", "success");
+                
+                cancelCrop();
+            }, 'image/jpeg', 0.7); // 0.7 quality to keep cloud storage optimized
+        }
+
+        function saveAdminChanges() {
+            if (!hasUnsavedChanges) return;
+            
+            if (!isCloudReady) {
+                // Local Preview Fallback (When Firebase is not connected yet)
+                if (unsavedPromoTitle !== null) {
+                    currentPromoTitle = unsavedPromoTitle;
+                    unsavedPromoTitle = null;
+                }
+                hasUnsavedChanges = false;
+                unsavedImages = {};
+                document.getElementById('admin-save-btn').classList.add('hidden');
+                showToast("Preview Mode: Changes applied locally (Connect Firebase to save permanently).", "success");
+                return;
+            }
+
+            // Save settings first if changed
+            if (unsavedPromoTitle !== null) {
+                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'siteData', 'settings'), { promoTitle: unsavedPromoTitle }, { merge: true })
+                .then(() => {
+                    currentPromoTitle = unsavedPromoTitle;
+                    unsavedPromoTitle = null;
+                }).catch(e => console.error("Error saving title", e));
+            }
+
+            // Save to Cloud Database for persistence across devices
+            const promises = [];
+            for (const [id, data] of Object.entries(unsavedImages)) {
+                 const promise = new Promise((resolve) => {
+                     const reader = new FileReader();
+                     reader.readAsDataURL(data.newBlob);
+                     reader.onloadend = function() {
+                         const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'posters', id);
+                         setDoc(pRef, { data: reader.result })
+                            .then(resolve)
+                            .catch((e) => {
+                                console.warn("Cloud storage limit reached", e);
+                                showToast("Storage optimization needed. Some images might not save.", "error");
+                                resolve();
+                            });
+                     }
+                 });
+                 promises.push(promise);
+            }
+            
+            Promise.all(promises).then(() => {
+                hasUnsavedChanges = false;
+                unsavedImages = {};
+                document.getElementById('admin-save-btn').classList.add('hidden');
+                showToast("All changes saved to the cloud successfully!", "success");
+            });
+        }
+
+        function cancelCrop() {
+            closeModal('cropper-modal');
+        }
+        
+        // --- STREAMING_CHUNK:Review System Logic... ---
+        function updateReviewUI() {
+            const authContainer = document.getElementById('auth-status-container');
+            const formContainer = document.getElementById('review-form-container');
+            const adminAddBtn = document.getElementById('admin-add-review-btn');
+            
+            if (isAdmin) {
+                adminAddBtn.classList.remove('hidden');
+            } else {
+                adminAddBtn.classList.add('hidden');
+            }
+            
+            if (currentUser) {
+                authContainer.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1 rounded-full border">
+                            ${isAdmin ? '<i class="fas fa-shield-alt text-brand-gold mr-1"></i> Admin' : '<i class="fas fa-user text-brand-blue mr-1"></i> ' + currentUser.name}
+                        </span>
+                        <button onclick="logoutUser()" class="text-red-500 hover:text-red-700 text-sm font-bold underline">Logout</button>
+                    </div>
+                `;
+                if(!isAdmin) formContainer.classList.remove('hidden'); // Only normal users leave root reviews usually, but can allow admin too.
+                else formContainer.classList.add('hidden');
+            } else {
+                authContainer.innerHTML = `<button onclick="openLoginModal()" class="text-brand-blue font-semibold hover:underline bg-blue-50 px-4 py-2 rounded-lg border border-blue-100"><i class="fas fa-sign-in-alt mr-1"></i> Sign In to Review</button>`;
+                formContainer.classList.add('hidden');
+            }
+
+            renderReviews();
+        }
+
+        function logoutUser() {
+            if(isAdmin) logoutAdmin();
+            else {
+                currentUser = null;
+                showToast("Logged out successfully");
+                updateReviewUI();
+            }
+        }
+
+        function submitReview() {
+            if (!currentUser || isAdmin) return; // Admin shouldn't post standard reviews here
+            if (selectedRating === 0) { showToast("Please select a star rating", "error"); return; }
+            
+            const text = document.getElementById('review-text').value.trim();
+            if (!text) { showToast("Please write a review", "error"); return; }
+
+            const newReview = {
+                id: Date.now(),
+                author: currentUser.name,
+                role: "Client",
+                rating: selectedRating,
+                text: text,
+                image: pendingReviewImage, // Save the image if uploaded
+                replies: []
+            };
+
+            reviews.unshift(newReview); // Add to top
+            
+            // Reset form
+            document.getElementById('review-text').value = '';
+            selectedRating = 0;
+            document.querySelectorAll('#star-selector i').forEach(s => { s.classList.remove('text-brand-gold'); s.classList.add('text-gray-300'); });
+            clearReviewImage(); // reset image field
+            
+            showToast("Review posted successfully!");
+            renderReviews();
+            syncReviewsToCloud(); // Save to Cloud
+        }
+
+        function generateStars(rating) {
+            let stars = '';
+            for(let i=1; i<=5; i++) {
+                stars += `<i class="fas fa-star ${i <= rating ? 'text-brand-gold' : 'text-gray-300'}"></i>`;
+            }
+            return stars;
+        }
+
+        function renderReviews() {
+            const list = document.getElementById('reviews-list');
+            list.innerHTML = '';
+
+            reviews.forEach(review => {
+                let repliesHtml = '';
+                if (review.replies && review.replies.length > 0) {
+                    repliesHtml = `<div class="mt-4 space-y-3 pl-4 border-l-2 border-gray-200">`;
+                    review.replies.forEach((reply, index) => {
+                        const adminBadge = reply.isAdmin ? `<span class="bg-brand-gold text-brand-dark text-xs font-bold px-2 py-0.5 rounded ml-2"><i class="fas fa-check-circle"></i> Official Admin</span>` : '';
+                        const nameStyle = reply.isAdmin ? 'text-brand-blue font-black' : 'text-gray-800 font-bold';
+                        const deleteReplyBtn = isAdmin ? `<button onclick="deleteReply(${review.id}, ${index})" class="text-red-500 hover:text-red-700 ml-auto" title="Delete Reply"><i class="fas fa-trash text-sm"></i></button>` : '';
+                        
+                        repliesHtml += `
+                            <div class="bg-gray-50 rounded-lg p-3 text-sm flex flex-col relative group border border-transparent hover:border-red-200 transition">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center">
+                                        <span class="${nameStyle}">${reply.author}</span>
+                                        ${adminBadge}
+                                    </div>
+                                    ${deleteReplyBtn}
+                                </div>
+                                <p class="text-gray-700">${reply.text}</p>
+                            </div>
+                        `;
+                    });
+                    repliesHtml += `</div>`;
+                }
+
+                // Reply input area
+                let replyInputHtml = '';
+                if (currentUser) {
+                    const btnStyle = isAdmin ? 'bg-brand-blue text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+                    const btnIcon = isAdmin ? '<i class="fas fa-reply mr-1"></i> Admin Reply' : 'Reply';
+                    
+                    replyInputHtml = `
+                        <div class="mt-3 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                            <input type="text" id="reply-input-${review.id}" class="flex-grow border border-gray-300 rounded px-3 py-2 sm:py-1 text-sm focus:outline-none focus:border-brand-blue" placeholder="${isAdmin ? 'Reply as Admin...' : 'Reply to this review...'}">
+                            <button onclick="submitReply(${review.id})" class="${btnStyle} px-4 py-2 sm:px-3 sm:py-1 rounded text-sm font-semibold transition whitespace-nowrap">
+                                ${btnIcon}
+                            </button>
+                        </div>
+                    `;
+                }
+
+                // Check for review image
+                const reviewImageHtml = review.image ? `
+                    <div class="mt-3">
+                        <img src="${review.image}" class="h-32 object-cover rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:opacity-90 transition" onclick="viewImage(this.src)" alt="Review Attachment">
+                    </div>
+                ` : '';
+
+                const reviewHtml = `
+                    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition relative group">
+                        ${isAdmin ? `
+                        <div class="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition z-10">
+                            <button onclick="openAdminReviewModal(${review.id})" class="bg-blue-100 text-blue-600 p-2 rounded hover:bg-blue-600 hover:text-white transition shadow-sm" title="Edit Review"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteReview(${review.id})" class="bg-red-100 text-red-600 p-2 rounded hover:bg-red-600 hover:text-white transition shadow-sm" title="Delete Entire Review"><i class="fas fa-trash"></i></button>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="flex justify-between items-start mb-2 pr-16">
+                            <div>
+                                <h5 class="font-bold text-lg text-gray-800">${review.author}</h5>
+                                <p class="text-xs text-gray-500">${review.role || 'Client'}</p>
+                            </div>
+                            <div class="text-sm">
+                                ${generateStars(review.rating)}
+                            </div>
+                        </div>
+                        <p class="text-gray-700 mt-2 italic">"${review.text}"</p>
+                        ${reviewImageHtml}
+                        ${repliesHtml}
+                        ${replyInputHtml}
+                    </div>
+                `;
+                list.innerHTML += reviewHtml;
+            });
+        }
+
+        // Admin Deletion Functions
+        function deleteReview(reviewId) {
+            if (!isAdmin) return;
+            // Removed confirm() as per standard system rules, using implicit deletion
+            reviews = reviews.filter(r => r.id !== reviewId);
+            showToast("Review deleted.", "success");
+            renderReviews();
+            syncReviewsToCloud(); // Save to Cloud
+        }
+
+        function deleteReply(reviewId, replyIndex) {
+            if (!isAdmin) return;
+            const targetReview = reviews.find(r => r.id === reviewId);
+            if (targetReview) {
+                targetReview.replies.splice(replyIndex, 1);
+                showToast("Reply deleted.", "success");
+                renderReviews();
+                syncReviewsToCloud(); // Save to Cloud
+            }
+        }
+
+        function submitReply(reviewId) {
+            const input = document.getElementById(`reply-input-${reviewId}`);
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            const targetReview = reviews.find(r => r.id === reviewId);
+            if (targetReview) {
+                targetReview.replies.push({
+                    author: currentUser.name,
+                    isAdmin: isAdmin,
+                    text: text
+                });
+                showToast(isAdmin ? "Admin reply posted" : "Reply posted");
+                input.value = ''; // Clear input
+                renderReviews();
+                syncReviewsToCloud(); // Save to Cloud
+            }
+        }
+
+        // --- STREAMING_CHUNK:Admin Edit & Add Review Logic... ---
+        let editingReviewId = null;
+        let adminSelectedRating = 5;
+
+        // Admin Modal Star Selection
+        document.querySelectorAll('#admin-review-stars i').forEach(star => {
+            star.addEventListener('click', (e) => {
+                adminSelectedRating = parseInt(e.target.getAttribute('data-val'));
+                updateAdminStarUI();
+            });
+        });
+
+        function updateAdminStarUI() {
+            document.querySelectorAll('#admin-review-stars i').forEach(s => {
+                if (parseInt(s.getAttribute('data-val')) <= adminSelectedRating) {
+                    s.classList.add('text-brand-gold'); s.classList.remove('text-gray-300');
+                } else {
+                    s.classList.remove('text-brand-gold'); s.classList.add('text-gray-300');
+                }
+            });
+        }
+
+        function openAdminReviewModal(reviewId = null) {
+            editingReviewId = reviewId;
+            const modalTitle = document.getElementById('admin-review-modal-title');
+            const authorInput = document.getElementById('admin-review-author');
+            const roleInput = document.getElementById('admin-review-role');
+            const textInput = document.getElementById('admin-review-text');
+
+            if (reviewId) {
+                const review = reviews.find(r => r.id === reviewId);
+                if (review) {
+                    modalTitle.innerHTML = '<i class="fas fa-edit mr-2"></i> Edit Review';
+                    authorInput.value = review.author;
+                    roleInput.value = review.role || '';
+                    adminSelectedRating = review.rating;
+                    textInput.value = review.text;
+                }
+            } else {
+                modalTitle.innerHTML = '<i class="fas fa-plus mr-2"></i> Add Review';
+                authorInput.value = '';
+                roleInput.value = '';
+                adminSelectedRating = 5;
+                textInput.value = '';
+            }
+            
+            updateAdminStarUI();
+            document.getElementById('admin-review-modal').classList.add('active');
+        }
+
+        function saveAdminReview() {
+            const author = document.getElementById('admin-review-author').value.trim();
+            const role = document.getElementById('admin-review-role').value.trim();
+            const text = document.getElementById('admin-review-text').value.trim();
+
+            if (!author || !text) {
+                showToast("Author Name and Review Text are required", "error");
+                return;
+            }
+
+            if (editingReviewId) {
+                // Update existing review
+                const review = reviews.find(r => r.id === editingReviewId);
+                if (review) {
+                    review.author = author;
+                    review.role = role || 'Client';
+                    review.rating = adminSelectedRating;
+                    review.text = text;
+                    showToast("Review updated successfully", "success");
+                }
+            } else {
+                // Add new review manually
+                const newReview = {
+                    id: Date.now(),
+                    author: author,
+                    role: role || 'Client',
+                    rating: adminSelectedRating,
+                    text: text,
+                    image: null,
+                    replies: []
+                };
+                reviews.unshift(newReview); // Add to top
+                showToast("New review added", "success");
+            }
+            
+            closeModal('admin-review-modal');
+            renderReviews();
+            syncReviewsToCloud(); // Save to Cloud
+        }
+
+        // Initialize UI
+        updateReviewUI();
+
+        // Boot up the Cloud Database
+        window.addEventListener('DOMContentLoaded', () => {
+            initCloud();
+        });
+
+    </script>
+</body>
+</html>
