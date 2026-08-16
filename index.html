@@ -322,14 +322,15 @@
                     <p class="text-xs text-gray-500 mb-4 text-center md:text-left"><i class="fas fa-arrows-alt-h mr-1"></i> Drag to explore or use the slider below</p>
                     
                     <!-- Horizontal Scroll Gallery with Drag-to-Scroll Support -->
-                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-4 no-scrollbar cursor-grab active:cursor-grabbing select-none">
+                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-4 no-scrollbar cursor-grab active:cursor-grabbing select-none" style="scroll-behavior: smooth;">
                         <!-- Dynamic Success Stories will render here -->
                     </div>
                     
                     <!-- Bottom Custom Slider / Scrollbar Indicator -->
                     <div class="mt-8 flex items-center justify-center px-4 w-full">
-                        <div id="custom-slider-track" class="w-full max-w-4xl h-5 bg-gray-200 rounded-full relative cursor-pointer overflow-hidden shadow-inner border-2 border-gray-300">
-                            <div id="custom-slider-thumb" class="absolute top-0 left-0 h-full bg-brand-gold rounded-full transition-all duration-75 cursor-grab active:cursor-grabbing shadow-md border-r-2 border-l-2 border-brand-dark hover:bg-yellow-400"></div>
+                        <div id="custom-slider-track" class="w-full max-w-4xl h-6 bg-gray-200 rounded-full relative cursor-pointer overflow-hidden shadow-inner border-2 border-gray-300">
+                            <!-- Removed the transition-all duration-75 to stop visual stuttering -->
+                            <div id="custom-slider-thumb" class="absolute top-0 left-0 h-full bg-brand-gold rounded-full cursor-grab active:cursor-grabbing shadow-md border-r-2 border-l-2 border-brand-dark hover:bg-yellow-400"></div>
                         </div>
                     </div>
                 </div>
@@ -1617,58 +1618,73 @@
             const thumb = document.getElementById('custom-slider-thumb');
             if(!slider || !track || !thumb) return;
 
-            // 1. Update Thumb Width & Position based on scroll
+            // 1. Update Thumb Width & Position based on scroll (Optimized with requestAnimationFrame)
+            let ticking = false;
             function updateThumb() {
-                const scrollWidth = slider.scrollWidth - slider.clientWidth;
-                if (scrollWidth <= 0) {
-                    thumb.style.width = '100%';
-                    thumb.style.left = '0%';
-                    return;
-                }
-                const ratio = slider.clientWidth / slider.scrollWidth;
-                const thumbWidth = Math.max(ratio * 100, 10); // Min 10% width
-                const maxLeft = 100 - thumbWidth;
-                const scrollFraction = slider.scrollLeft / scrollWidth;
-                const thumbLeft = scrollFraction * maxLeft;
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const scrollWidth = slider.scrollWidth - slider.clientWidth;
+                        if (scrollWidth <= 0) {
+                            thumb.style.width = '100%';
+                            thumb.style.left = '0%';
+                            ticking = false;
+                            return;
+                        }
+                        const ratio = slider.clientWidth / slider.scrollWidth;
+                        const thumbWidth = Math.max(ratio * 100, 10); // Min 10% width
+                        const maxLeft = 100 - thumbWidth;
+                        const scrollFraction = slider.scrollLeft / scrollWidth;
+                        const thumbLeft = scrollFraction * maxLeft;
 
-                thumb.style.width = `${thumbWidth}%`;
-                thumb.style.left = `${thumbLeft}%`;
+                        thumb.style.width = `${thumbWidth}%`;
+                        thumb.style.left = `${thumbLeft}%`;
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
             }
 
             slider.removeEventListener('scroll', updateThumb);
             slider.addEventListener('scroll', updateThumb);
             updateThumb();
 
-            // 2. Click-Hold and Drag to Scroll (Mouse & Touch)
+            // 2. Click-Hold and Drag to Scroll (MOUSE ONLY - Touch gets native momentum)
             let isDown = false;
             let startX;
             let scrollLeft;
 
             const startDrag = (e) => {
                 isDown = true;
+                slider.style.scrollBehavior = 'auto'; // Remove smooth scroll temporarily while dragging
                 slider.classList.add('cursor-grabbing');
-                startX = (e.pageX || e.touches[0].pageX) - slider.offsetLeft;
+                startX = e.pageX - slider.offsetLeft;
                 scrollLeft = slider.scrollLeft;
             };
 
             slider.onmousedown = startDrag;
-            slider.ontouchstart = startDrag;
 
-            slider.onmouseleave = () => { isDown = false; slider.classList.remove('cursor-grabbing'); };
-            slider.onmouseup = () => { isDown = false; slider.classList.remove('cursor-grabbing'); };
-            slider.ontouchend = () => { isDown = false; slider.classList.remove('cursor-grabbing'); };
+            slider.onmouseleave = () => { 
+                isDown = false; 
+                slider.classList.remove('cursor-grabbing'); 
+                slider.style.scrollBehavior = 'smooth';
+            };
+            slider.onmouseup = () => { 
+                isDown = false; 
+                slider.classList.remove('cursor-grabbing'); 
+                slider.style.scrollBehavior = 'smooth';
+            };
 
             const moveDrag = (e) => {
                 if(!isDown) return;
-                // prevent text selection while dragging
                 if(e.cancelable) e.preventDefault(); 
-                const x = (e.pageX || e.touches[0].pageX) - slider.offsetLeft;
+                const x = e.pageX - slider.offsetLeft;
                 const walk = (x - startX) * 1.5; // Scroll speed multiplier
                 slider.scrollLeft = scrollLeft - walk;
             };
 
             slider.onmousemove = moveDrag;
-            slider.ontouchmove = moveDrag;
+            
+            // Removed slider.ontouch... events so mobile uses buttery smooth native scrolling!
 
             // 3. Track Click and Thumb Dragging (Mouse & Touch)
             track.onclick = (e) => {
@@ -1679,12 +1695,11 @@
             };
 
             let isDraggingThumb = false;
-            thumb.onmousedown = (e) => { isDraggingThumb = true; e.stopPropagation(); };
-            thumb.ontouchstart = (e) => { isDraggingThumb = true; e.stopPropagation(); };
+            thumb.onmousedown = (e) => { isDraggingThumb = true; slider.style.scrollBehavior = 'auto'; e.stopPropagation(); };
+            thumb.ontouchstart = (e) => { isDraggingThumb = true; slider.style.scrollBehavior = 'auto'; e.stopPropagation(); };
 
-            // Bind to window to allow dragging outside the element smoothly
-            window.onmouseup = () => { isDraggingThumb = false; isDown = false; slider.classList.remove('cursor-grabbing'); };
-            window.ontouchend = () => { isDraggingThumb = false; isDown = false; slider.classList.remove('cursor-grabbing'); };
+            window.onmouseup = () => { isDraggingThumb = false; isDown = false; slider.classList.remove('cursor-grabbing'); slider.style.scrollBehavior = 'smooth'; };
+            window.ontouchend = () => { isDraggingThumb = false; isDown = false; slider.classList.remove('cursor-grabbing'); slider.style.scrollBehavior = 'smooth'; };
 
             window.onmousemove = (e) => {
                 if(!isDraggingThumb) return;
