@@ -1603,7 +1603,7 @@
                 const deleteBtn = isAdmin ? `<button onclick="deleteSuccessStory('${story.id}')" class="absolute top-3 right-3 bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-xl hover:bg-red-700 z-20 border-2 border-white"><i class="fas fa-trash text-lg"></i></button>` : '';
                 
                 grid.innerHTML += `
-                    <div class="relative group flex-none w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] max-w-[900px]">
+                    <div class="relative group flex-none w-[80vw] sm:w-[300px] md:w-[350px] lg:w-[400px]">
                         ${deleteBtn}
                         <img src="${story.src}" alt="Client Feedback" class="w-full h-auto object-contain rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer border-2 border-gray-200 bg-white" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/800x600/e2e8f0/64748b?text=${fallbackText}'" draggable="false">
                     </div>
