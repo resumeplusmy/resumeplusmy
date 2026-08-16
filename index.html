@@ -55,6 +55,10 @@
         .star-rating .fa-star { cursor: pointer; color: #cbd5e1; transition: color 0.2s; }
         .star-rating .fa-star.active, .star-rating .fa-star:hover, .star-rating .fa-star:hover ~ .fa-star { color: #facc15; }
 
+        /* Horizontal Scroll Hide */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
         /* Admin Mode Spacing Adjustments */
         body.admin-mode-active #chat-fab { bottom: 150px; }
         body.admin-mode-active #chat-window { bottom: 220px; }
@@ -293,9 +297,6 @@
                                         <i class="fas fa-envelope mr-1"></i> Email
                                     </a>
                                 </div>
-                                <div class="mt-4 flex justify-center">
-                                     <img src="ResumePlus_WhatsApp_QR.png" alt="WhatsApp QR" class="w-32 h-32 rounded-lg shadow-sm border border-gray-300" onerror="this.src='https://placehold.co/150x150/25D366/ffffff?text=WA+QR'">
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -318,7 +319,7 @@
                             <i class="fas fa-plus mr-1"></i> Add Picture
                         </button>
                     </div>
-                    <div id="success-stories-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                    <div id="success-stories-grid" class="flex overflow-x-auto space-x-6 pb-6 snap-x snap-mandatory no-scrollbar">
                         <!-- Dynamic Success Stories will render here -->
                     </div>
                 </div>
@@ -1589,7 +1590,7 @@
                 const deleteBtn = isAdmin ? `<button onclick="deleteSuccessStory('${story.id}')" class="absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-700 z-10"><i class="fas fa-trash"></i></button>` : '';
                 
                 grid.innerHTML += `
-                    <div class="relative group aspect-[3/4] w-full">
+                    <div class="relative group aspect-[3/4] flex-none w-[80%] sm:w-[45%] md:w-[40%] lg:w-[30%] snap-center">
                         ${deleteBtn}
                         <img src="${story.src}" alt="Client Feedback" class="w-full h-full object-cover rounded-lg shadow-md hover:shadow-xl transition cursor-pointer" onclick="viewImage(this.src)" onerror="this.src='https://placehold.co/300x400/e2e8f0/64748b?text=${fallbackText}'">
                     </div>
